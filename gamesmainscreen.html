@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Games Main Screen</title>
+        <style>
+            /* Left side styles from hard-games */
+            .container {
+                text-align: center;
+                width: 90%;
+                height: 90%;
+                padding: 40px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+
+            .main-title {
+                font-size: 5em;
+                font-weight: bold;
+                margin-bottom: 40px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                color: white;
+            }
+
+            .button-container {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+                align-items: center;
+                flex-grow: 1;
+                justify-content: center;
+                width: 100%;
+                max-width: 100%;
+                padding: 0 10px;
+                box-sizing: border-box;
+                overflow-y: auto;
+                /* Add some padding at the bottom for scrolling */
+                padding-bottom: 20px;
+            }
+
+            .game-button {
+                padding: 20px 40px;
+                font-size: 1.8em;
+                font-weight: bold;
+                color: white;
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                border: none;
+                border-radius: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%; /* Full width to be controlled by JS */
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .game-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(45deg, #ff5252, #d63031);
+            }
+
+            .external-button {
+                background: linear-gradient(45deg, #00b894, #00a085);
+            }
+
+            .external-button:hover {
+                background: linear-gradient(45deg, #00a085, #008f7a);
+            }
+
+            .subtitle {
+                font-size: 1.6em;
+                margin-bottom: 50px;
+                opacity: 0.9;
+                font-weight: 300;
+                color: white;
+            }
+
+            @media (max-width: 600px) {
+                .main-title {
+                    font-size: 2.5em;
+                }
+                
+                .container {
+                    margin: 20px;
+                    padding: 30px 20px;
+                }
+                
+                .game-button {
+                    min-width: 200px;
+                    font-size: 1.1em;
+                }
+            }
+            
+            /* Right side styles */
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                background: rgb(23,20,23);
+            }
+            .vertical-strip {
+                width: 20px;
+                height: 100vh;
+                background-color: whitesmoke;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                top: 0;
+            }
+            
+            .horizontal-strip {
+                height: 20px;
+                background-color: whitesmoke;
+                position: absolute;
+                left: calc(50% + 10px); /* 50% + half of vertical strip width */
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            
+            /* Common styles for quadrant containers */
+            .quadrant {
+                position: absolute;
+                width: calc(50% - 10px);
+                height: calc(50% - 10px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            
+            /* Right side quadrants */
+            .right-quadrant { left: calc(50% + 10px); } /* Right of vertical strip */
+            .top-right-part { top: 0; right: 0; }
+            .bottom-right-part { bottom: 0; right: 0; top: calc(50% + 10px); }
+            
+            /* Left side container */
+            .left-side {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: calc(50% - 10px); /* Left of vertical strip */
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            
+            /* Common button styles */
+            .btn {
+                width: 80%; height: 80%;
+                color: white; border: none; border-radius: 15px;
+                font-weight: bold; text-decoration: none;
+                display: flex; justify-content: center; align-items: center;
+                transition: all 0.3s ease;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+                position: relative; overflow: hidden; cursor: pointer;
+                text-align: center;
+            }
+            
+            /* Button colors */
+            .back-btn { background-color: #ff6b6b; }
+            .back-btn:hover { background-color: #ff8787; }
+            .fun-btn { background-color: lightgreen; }
+            .fun-btn:hover { background-color: #90ee90; }
+            
+            /* Text styles */
+            .back-btn span { font-size: 225px; }
+            .fun-btn span { 
+                font-size: 65px; 
+                text-align: center;
+                padding: 10px;
+                white-space: nowrap;
+            }
+            
+            .btn span {
+                display: block; 
+                line-height: 1.1;
+                transition: all 0.3s ease;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            }
+            
+            /* Animations */
+            .btn:hover {
+                transform: scale(1.05) rotate(2deg);
+                box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+            }
+            
+            .btn:active { transform: scale(0.95); }
+            
+            .btn::before {
+                content: ''; position: absolute;
+                top: -50%; left: -50%; width: 200%; height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+                transform: scale(0); transition: transform 0.5s;
+                pointer-events: none;
+            }
+            
+            .btn:hover::before {
+                transform: scale(1);
+                animation: ripple 1s infinite;
+            }
+            
+            @keyframes ripple {
+                0% { opacity: 0.5; transform: scale(0.8); }
+                100% { opacity: 0; transform: scale(1.5); }
+            }
+            
+            .btn:hover span { transform: scale(1.1); }
+            
+            /* Special animation for fun button text */
+            .fun-btn:hover span { 
+                transform: scale(1.05) translateY(-5px);
+                text-shadow: 3px 3px 6px rgba(0,0,0,0.25);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="vertical-strip"></div>
+        <div class="horizontal-strip"></div>
+        
+        <!-- Left side content -->
+        <div class="left-side">
+            <div class="container">
+                <h1 class="main-title">hard games to play</h1>
+                <p class="subtitle">Choose your gaming adventure</p>
+                
+                <div class="button-container">
+                    <a href="https://viyanajith.github.io/classic-games/mainscreen.html" class="game-button">
+                        Classic Games
+                    </a>
+
+                    <a href="https://viyanajith.github.io/simple-games/" class="game-button">
+                        Simple Games
+                    </a>
+
+                    <a href="https://viyanajith.github.io/simulator-games/mainscreen.html" class="game-button">
+                        Simulator Games
+                    </a>
+
+                    <a href="https://viyanajith.github.io/hard-games/mainscreen.html" class="game-button">
+                        Hard Games
+                    </a>
+                    
+                    <a href="https://viyanajith.blog/viyanajith-blog-games/" class="game-button external-button">
+                        More Games on Viyanajith.Blog
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side content -->
+        <div class="quadrant right-quadrant top-right-part">
+            <a id='linkFunBTN' href="" class="btn fun-btn"><span>Extra Fun Games</span></a>
+        </div>
+        <div class="quadrant right-quadrant bottom-right-part">
+            <a id='linkBackBTN' href="" class="btn back-btn"><span>Back</span></a>
+        </div>
+        <script>
+            const linkBackBTN = 'https://viyanajith.blog/viyanajith-blog-games/';
+            const linkFunBTN = 'https://viyanajith.blog';
+
+            function updateLinks() {
+                document.getElementById('linkBackBTN').href = linkBackBTN;
+                document.getElementById('linkFunBTN').href = linkFunBTN;
+            }
+            
+            function adjustLayout() {
+                // Get container and buttons
+                const container = document.querySelector('.container');
+                const buttonContainer = document.querySelector('.button-container');
+                const buttons = document.querySelectorAll('.game-button');
+                const mainTitle = document.querySelector('.main-title');
+                const subtitle = document.querySelector('.subtitle');
+                
+                // Calculate available height for buttons
+                const containerHeight = container.clientHeight;
+                const titleHeight = mainTitle.offsetHeight;
+                const subtitleHeight = subtitle.offsetHeight;
+                const availableHeight = containerHeight - titleHeight - subtitleHeight - 100; // 100px for margins
+                
+                // Calculate button size based on number of buttons
+                const buttonCount = buttons.length;
+                const buttonGap = 30; // gap between buttons
+                const totalGapHeight = (buttonCount - 1) * buttonGap;
+                const buttonHeight = Math.max(40, Math.min(80, (availableHeight - totalGapHeight) / buttonCount));
+                
+                // Calculate font size based on button height
+                const fontSize = Math.max(0.9, Math.min(1.6, buttonHeight / 50));
+                
+                // Calculate button width based on container width
+                const containerWidth = container.clientWidth;
+                const buttonWidth = Math.min(320, containerWidth * 0.75);
+                
+                // Apply styles to buttons
+                buttons.forEach(button => {
+                    button.style.padding = `${buttonHeight/4}px ${buttonHeight/2}px`;
+                    button.style.fontSize = `${fontSize}em`;
+                    button.style.width = `${buttonWidth}px`;
+                    button.style.maxWidth = '100%';
+                    // Ensure text is centered
+                    button.style.display = 'flex';
+                    button.style.justifyContent = 'center';
+                    button.style.alignItems = 'center';
+                });
+                
+                // Adjust title and subtitle size if needed
+                if (buttonCount > 4) {
+                    const titleSize = Math.max(3, 6 - (buttonCount * 0.3));
+                    mainTitle.style.fontSize = `${titleSize}em`;
+                    mainTitle.style.marginBottom = '20px';
+                    subtitle.style.fontSize = '1.3em';
+                    subtitle.style.marginBottom = '20px';
+                }
+                
+                // Check if content overflows and enable scrolling if needed
+                const totalContentHeight = titleHeight + subtitleHeight + 
+                                          (buttonHeight * buttonCount) + 
+                                          (buttonGap * (buttonCount - 1)) + 80; // 80px for padding
+                
+                if (totalContentHeight > containerHeight) {
+                    buttonContainer.style.overflowY = 'auto';
+                    buttonContainer.style.justifyContent = 'flex-start';
+                    buttonContainer.style.paddingTop = '20px';
+                } else {
+                    buttonContainer.style.overflowY = 'hidden';
+                    buttonContainer.style.justifyContent = 'center';
+                    buttonContainer.style.paddingTop = '0';
+                }
+            }
+            
+            // Set links and adjust layout when page loads
+            window.onload = function() {
+                updateLinks();
+                adjustLayout();
+            };
+            
+            // Adjust layout when window is resized
+            window.addEventListener('resize', adjustLayout);
+        </script>
+    </body>
+</html>
