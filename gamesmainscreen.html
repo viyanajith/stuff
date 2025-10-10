@@ -8,9 +8,9 @@
             /* Left side styles from hard-games */
             .container {
                 text-align: center;
-                width: 90%;
-                height: 90%;
-                padding: 40px 20px;
+                width: 85%;
+                height: 85%;
+                padding: 30px 20px;
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 20px;
                 backdrop-filter: blur(10px);
@@ -21,6 +21,7 @@
                 justify-content: center;
                 overflow: hidden;
                 box-sizing: border-box;
+                margin: 0 auto;
             }
 
             .main-title {
@@ -34,7 +35,7 @@
             .button-container {
                 display: flex;
                 flex-direction: column;
-                gap: 30px;
+                gap: 20px;
                 align-items: center;
                 flex-grow: 1;
                 justify-content: center;
@@ -44,17 +45,18 @@
                 box-sizing: border-box;
                 overflow-y: auto;
                 /* Add some padding at the bottom for scrolling */
-                padding-bottom: 20px;
+                padding-bottom: 15px;
+                margin-top: 10px;
             }
 
             .game-button {
-                padding: 20px 40px;
-                font-size: 1.8em;
+                padding: 15px 30px;
+                font-size: 1.6em;
                 font-weight: bold;
                 color: white;
                 background: linear-gradient(45deg, #ff6b6b, #ee5a24);
                 border: none;
-                border-radius: 15px;
+                border-radius: 12px;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 text-decoration: none;
@@ -67,6 +69,7 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                margin: 0 auto;
             }
 
             .game-button:hover {
@@ -305,7 +308,7 @@
                 
                 // Calculate button width based on container width
                 const containerWidth = container.clientWidth;
-                const buttonWidth = Math.min(320, containerWidth * 0.75);
+                const buttonWidth = Math.min(300, containerWidth * 0.7);
                 
                 // Apply styles to buttons
                 buttons.forEach(button => {
