@@ -282,73 +282,179 @@
             const linkBackBTN = 'https://viyanajith.blog';
             const linkFunBTN = 'https://viyanajith.github.io/LTM-games/';
 
+            // Resize helper functions
+            function resizePX(val) {
+                const referenceX = 1440;
+                const referenceY = 812;
+                
+                const currentX = window.innerWidth;
+                const currentY = window.innerHeight;
+                
+                const scaleX = currentX / referenceX;
+                const scaleY = currentY / referenceY;
+                const scale = (scaleX + scaleY) / 2;
+                
+                return Math.round(val * scale);
+            }
+
+            function resizePXpos(valX, valY) {
+                const referenceX = 1440;
+                const referenceY = 812;
+                
+                const currentX = window.innerWidth;
+                const currentY = window.innerHeight;
+                
+                const scaleX = currentX / referenceX;
+                const scaleY = currentY / referenceY;
+                
+                return {
+                    x: Math.round(valX * scaleX),
+                    y: Math.round(valY * scaleY)
+                };
+            }
+
             function updateLinks() {
                 document.getElementById('linkBackBTN').href = linkBackBTN;
                 document.getElementById('linkFunBTN').href = linkFunBTN;
             }
             
             function adjustLayout() {
-                // Get container and buttons
+                // Apply responsive sizing to all elements using resizePX and resizePXpos
+                
+                // Get all elements
                 const container = document.querySelector('.container');
                 const buttonContainer = document.querySelector('.button-container');
                 const buttons = document.querySelectorAll('.game-button');
                 const mainTitle = document.querySelector('.main-title');
                 const subtitle = document.querySelector('.subtitle');
+                const leftSide = document.querySelector('.left-side');
+                const verticalStrip = document.querySelector('.vertical-strip');
+                const horizontalStrip = document.querySelector('.horizontal-strip');
+                const rightQuadrants = document.querySelectorAll('.right-quadrant');
+                const backBtn = document.querySelector('.back-btn');
+                const funBtn = document.querySelector('.fun-btn');
                 
-                // Calculate available height for buttons
-                const containerHeight = container.clientHeight;
-                const titleHeight = mainTitle.offsetHeight;
-                const subtitleHeight = subtitle.offsetHeight;
-                const availableHeight = containerHeight - titleHeight - subtitleHeight - 100; // 100px for margins
+                // Resize strips
+                const stripWidth = resizePX(20);
+                verticalStrip.style.width = `${stripWidth}px`;
+                horizontalStrip.style.height = `${stripWidth}px`;
                 
-                // Calculate button size based on number of buttons
-                const buttonCount = buttons.length;
-                const buttonGap = 30; // gap between buttons
-                const totalGapHeight = (buttonCount - 1) * buttonGap;
-                const buttonHeight = Math.max(40, Math.min(80, (availableHeight - totalGapHeight) / buttonCount));
+                // Position left side
+                leftSide.style.width = `calc(50% - ${stripWidth/2}px)`;
+                leftSide.style.padding = `${resizePX(20)}px`;
                 
-                // Calculate font size based on button height
-                const fontSize = Math.max(0.9, Math.min(1.6, buttonHeight / 50));
+                // Resize container
+                container.style.padding = `${resizePX(30)}px ${resizePX(20)}px`;
+                container.style.borderRadius = `${resizePX(20)}px`;
                 
-                // Calculate button width based on container width
-                const containerWidth = container.clientWidth;
-                const buttonWidth = Math.min(300, containerWidth * 0.7);
+                // Resize main title
+                mainTitle.style.fontSize = `${resizePX(80)}px`;
+                mainTitle.style.marginBottom = `${resizePX(40)}px`;
                 
-                // Apply styles to buttons
+                // Resize subtitle
+                subtitle.style.fontSize = `${resizePX(26)}px`;
+                subtitle.style.marginBottom = `${resizePX(50)}px`;
+                
+                // Resize button container
+                buttonContainer.style.gap = `${resizePX(20)}px`;
+                buttonContainer.style.padding = `0 ${resizePX(10)}px`;
+                buttonContainer.style.paddingBottom = `${resizePX(15)}px`;
+                buttonContainer.style.marginTop = `${resizePX(10)}px`;
+                
+                // Resize buttons
                 buttons.forEach(button => {
-                    button.style.padding = `${buttonHeight/4}px ${buttonHeight/2}px`;
-                    button.style.fontSize = `${fontSize}em`;
-                    button.style.width = `${buttonWidth}px`;
-                    button.style.maxWidth = '100%';
-                    // Ensure text is centered
-                    button.style.display = 'flex';
-                    button.style.justifyContent = 'center';
-                    button.style.alignItems = 'center';
+                    button.style.padding = `${resizePX(15)}px ${resizePX(30)}px`;
+                    button.style.fontSize = `${resizePX(26)}px`;
+                    button.style.borderRadius = `${resizePX(12)}px`;
                 });
                 
-                // Adjust title and subtitle size if needed
-                if (buttonCount > 4) {
-                    const titleSize = Math.max(3, 6 - (buttonCount * 0.3));
-                    mainTitle.style.fontSize = `${titleSize}em`;
-                    mainTitle.style.marginBottom = '20px';
-                    subtitle.style.fontSize = '1.3em';
-                    subtitle.style.marginBottom = '20px';
+                // Resize right quadrants
+                rightQuadrants.forEach(quad => {
+                    quad.style.width = `calc(50% - ${stripWidth/2}px)`;
+                    quad.style.height = `calc(50% - ${stripWidth/2}px)`;
+                    quad.style.left = `calc(50% + ${stripWidth/2}px)`;
+                    quad.style.padding = `${resizePX(20)}px`;
+                });
+                
+                // Position top right specifically
+                const topRight = document.querySelector('.top-right-part');
+                topRight.style.top = '0';
+                
+                // Position bottom right specifically
+                const bottomRight = document.querySelector('.bottom-right-part');
+                bottomRight.style.top = `calc(50% + ${stripWidth/2}px)`;
+                
+                // Resize right side buttons
+                const rightBtns = [backBtn, funBtn];
+                rightBtns.forEach(btn => {
+                    if (btn) {
+                        btn.style.borderRadius = `${resizePX(15)}px`;
+                    }
+                });
+                
+                // Back button text
+                if (backBtn) {
+                    const backSpan = backBtn.querySelector('span');
+                    if (backSpan) {
+                        backSpan.style.fontSize = `${resizePX(225)}px`;
+                    }
                 }
                 
-                // Check if content overflows and enable scrolling if needed
-                const totalContentHeight = titleHeight + subtitleHeight + 
-                                          (buttonHeight * buttonCount) + 
-                                          (buttonGap * (buttonCount - 1)) + 80; // 80px for padding
-                
-                if (totalContentHeight > containerHeight) {
-                    buttonContainer.style.overflowY = 'auto';
-                    buttonContainer.style.justifyContent = 'flex-start';
-                    buttonContainer.style.paddingTop = '20px';
-                } else {
-                    buttonContainer.style.overflowY = 'hidden';
-                    buttonContainer.style.justifyContent = 'center';
-                    buttonContainer.style.paddingTop = '0';
+                // Fun button text
+                if (funBtn) {
+                    const funSpan = funBtn.querySelector('span');
+                    if (funSpan) {
+                        funSpan.style.fontSize = `${resizePX(65)}px`;
+                        funSpan.style.padding = `${resizePX(10)}px`;
+                    }
                 }
+                
+                // Update container shadows and borders
+                container.style.boxShadow = `0 ${resizePX(8)}px ${resizePX(32)}px rgba(0, 0, 0, 0.3)`;
+                container.style.border = `${resizePX(1)}px solid rgba(255, 255, 255, 0.2)`;
+                
+                // Update button shadows
+                buttons.forEach(button => {
+                    button.style.boxShadow = `0 ${resizePX(4)}px ${resizePX(15)}px rgba(0, 0, 0, 0.2)`;
+                });
+                
+                // Update right side button shadows
+                rightBtns.forEach(btn => {
+                    if (btn) {
+                        btn.style.boxShadow = `0 ${resizePX(10)}px ${resizePX(20)}px rgba(0,0,0,0.2)`;
+                    }
+                });
+                
+                // Update text shadows
+                mainTitle.style.textShadow = `${resizePX(2)}px ${resizePX(2)}px ${resizePX(4)}px rgba(0, 0, 0, 0.3)`;
+                
+                // Update button span text shadows
+                const allBtnSpans = document.querySelectorAll('.btn span');
+                allBtnSpans.forEach(span => {
+                    span.style.textShadow = `${resizePX(2)}px ${resizePX(2)}px ${resizePX(4)}px rgba(0,0,0,0.2)`;
+                });
+                
+                // Add hover listeners with scaled transforms
+                buttons.forEach(button => {
+                    button.addEventListener('mouseenter', function() {
+                        this.style.boxShadow = `0 ${resizePX(6)}px ${resizePX(20)}px rgba(0, 0, 0, 0.3)`;
+                    });
+                    button.addEventListener('mouseleave', function() {
+                        this.style.boxShadow = `0 ${resizePX(4)}px ${resizePX(15)}px rgba(0, 0, 0, 0.2)`;
+                    });
+                });
+                
+                // Update hover effects for right buttons
+                rightBtns.forEach(btn => {
+                    if (btn) {
+                        btn.addEventListener('mouseenter', function() {
+                            this.style.boxShadow = `0 ${resizePX(15)}px ${resizePX(25)}px rgba(0,0,0,0.3)`;
+                        });
+                        btn.addEventListener('mouseleave', function() {
+                            this.style.boxShadow = `0 ${resizePX(10)}px ${resizePX(20)}px rgba(0,0,0,0.2)`;
+                        });
+                    }
+                });
             }
             
             // Set links and adjust layout when page loads
