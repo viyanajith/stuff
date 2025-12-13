@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Checkerboard Learner</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            /* Sidebar Layout */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #222;
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            /* Prevent scroll if possible */
+        }
+
+        #sidebar {
+            width: 300px;
+            background: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .panel {
+            background: #444;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #ddd;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #2196f3;
+        }
+
+        #board {
+            display: grid;
+            /* Grid template is set via JS now */
+            border: 5px solid #444;
+            user-select: none;
+            background-color: #111;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .tile {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        /* Initial Board Pattern: Red / Light Red */
+        .tile.red {
+            background-color: #d32f2f;
+        }
+
+        .tile.light-red {
+            background-color: #ef9a9a;
+        }
+
+        /* Target Indicator */
+        .tile.target::after {
+            content: '🎯';
+            font-size: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        /* AI Player */
+        .player {
+            width: 80%;
+            height: 80%;
+            background-color: #2196f3;
+            /* Blue */
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+            z-index: 10;
+            transition: all 0.1s linear;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="panel">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #4fc3f7;">How This Works</h3>
+            <p style="font-size: 13px; line-height: 1.5; color: #ccc; margin: 0;">
+                The <strong style="color: #2196f3;">blue AI</strong> uses <strong>Q-learning</strong> to navigate to
+                random
+                <strong style="color: #ffeb3b;">🎯 targets</strong> on the board. It learns optimal paths by trial and
+                error,
+                receiving rewards based on efficiency: <strong>(distance × 2) - steps taken</strong>. The AI balances
+                <em>exploration</em> (trying new moves) with <em>exploitation</em> (using learned knowledge) to maximize
+                its score over time.
+            </p>
+        </div>
+
+        <div class="panel">
+            <h2>Stats</h2>
+            <div class="stat-row"><span>Score:</span> <span id="score" class="stat-val">0</span></div>
+            <div class="stat-row"><span>Size:</span> <span id="size-display" class="stat-val">12x12</span></div>
+            <div class="stat-row"><span>Status:</span> <span id="status"
+                    style="font-size:12px; text-align:right;">Exploration</span></div>
+        </div>
+
+        <div class="panel">
+            <h2>Speed Control</h2>
+            <div class="stat-row">
+                <span>Interval:</span>
+                <span id="speed-val" class="stat-val">50ms</span>
+            </div>
+            <!-- Inverted direction visually? No, standard slider: Left=Low(Fast), Right=High(Slow) or user wanted Right=Fast? 
+                 User said "make the speed that the AI moves a direction a option on th left" -> "option on the left" sidebar.
+                 User said "Minimum 1frame right after 1ms per tick". 
+                 Usually sliders: Left = Min Value, Right = Max Value.
+                 Value = ms. 
+                 Left = 1ms (Fast), Right = 1000ms (Slow).
+            -->
+            <input type="range" id="speed-slider" min="1" max="1000" value="50">
+            <div style="font-size: 10px; color: #888; display: flex; justify-content: space-between; margin-top: 5px;">
+                <span>Fast (1ms)</span>
+                <span>Slow (1s)</span>
+            </div>
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="turbo-toggle" style="width: auto;">
+                <label for="turbo-toggle" style="font-size: 14px; user-select: none;">Turbo Mode (10x)</label>
+            </div>
+            <button id="pause-btn"
+                style="margin-top: 10px; padding: 8px; background: #555; border: none; color: white; border-radius: 5px; cursor: pointer; width: 100%;">Pause</button>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div id="board"></div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 12; // Fixed board size (no growing)
+
+        const boardElement = document.getElementById('board');
+        const scoreElement = document.getElementById('score');
+        const statusElement = document.getElementById('status');
+        const sizeDisplay = document.getElementById('size-display');
+        const speedSlider = document.getElementById('speed-slider');
+        const turboToggle = document.getElementById('turbo-toggle');
+        const pauseBtn = document.getElementById('pause-btn');
+        const speedValDisplay = document.getElementById('speed-val');
+
+        // --- State ---
+        let tiles = []; // 2D array of tile DOM elements
+        let playerPos = { x: 0, y: 0 };
+        let score = 0;
+        let targetPos = null; // Current target position
+        let initialDistance = 0; // Distance when target was spawned
+        let stepsTaken = 0; // Steps taken to reach current target
+        let currentStatusText = "Finding Target";
+
+        // --- Loop Control ---
+        let speedMs = 50;
+        let isPaused = false;
+
+        speedSlider.addEventListener('input', (e) => {
+            speedMs = parseInt(e.target.value);
+            speedValDisplay.innerText = `${speedMs}ms`;
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.innerText = isPaused ? "Resume" : "Pause";
+            pauseBtn.style.background = isPaused ? "#2e7d32" : "#555";
+        });
+
+        // --- Q-Learning Globals ---
+        // StateKey: "dx,dy" (Relative position to target)
+        // Actions: 0:Up, 1:Down, 2:Left, 3:Right
+        let qTable = {};
+        const ALPHA = 0.5;   // Learning Rate
+        const GAMMA = 0.9;   // Discount Factor
+        const EPSILON = 0.1; // Exploration Rate (Random move chance)
+        const ACTIONS = [
+            { x: 0, y: -1 }, // 0: Up
+            { x: 0, y: 1 },  // 1: Down
+            { x: -1, y: 0 }, // 2: Left
+            { x: 1, y: 0 }   // 3: Right
+        ];
+
+        // Init Board
+        function createBoard() {
+            // Clear existing
+            boardElement.innerHTML = '';
+            tiles = [];
+
+            // Update Grid CSS
+            boardElement.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 50px)`;
+            boardElement.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 50px)`;
+            sizeDisplay.innerText = `${BOARD_SIZE}x${BOARD_SIZE}`;
+
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                let row = [];
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    if ((x + y) % 2 === 0) tile.classList.add('red');
+                    else tile.classList.add('light-red');
+
+                    tile.dataset.x = x;
+                    tile.dataset.y = y;
+                    boardElement.appendChild(tile);
+                    row.push(tile);
+                }
+                tiles.push(row);
+            }
+        }
+
+        function updateView() {
+            // Clear Player
+            document.querySelectorAll('.player').forEach(p => p.remove());
+
+            // Clear Targets
+            document.querySelectorAll('.target').forEach(t => t.classList.remove('target'));
+
+            // Show target
+            if (targetPos) {
+                if (tiles[targetPos.y] && tiles[targetPos.y][targetPos.x]) {
+                    tiles[targetPos.y][targetPos.x].classList.add('target');
+                }
+            }
+
+            // Apply status text
+            statusElement.innerText = currentStatusText;
+
+            // Draw Player
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player');
+            if (tiles[playerPos.y] && tiles[playerPos.y][playerPos.x]) {
+                tiles[playerPos.y][playerPos.x].appendChild(playerDiv);
+            }
+
+            scoreElement.innerText = score.toFixed(2).replace(/\.00$/, '');
+        }
+
+        // --- Helper Functions ---
+        function getManhattanDist(a, b) {
+            return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+        }
+
+        function spawnRandomTarget() {
+            // Spawn target at random location (not on player)
+            let tx, ty;
+            do {
+                tx = Math.floor(Math.random() * BOARD_SIZE);
+                ty = Math.floor(Math.random() * BOARD_SIZE);
+            } while (tx === playerPos.x && ty === playerPos.y);
+
+            targetPos = { x: tx, y: ty };
+            initialDistance = getManhattanDist(playerPos, targetPos);
+            stepsTaken = 0;
+            currentStatusText = `Navigating to Target (Distance: ${initialDistance})`;
+        }
+
+        // --- Q-Learning Core ---
+        function getQ(dx, dy) {
+            const key = `${dx},${dy}`;
+            if (!qTable[key]) {
+                qTable[key] = [0, 0, 0, 0];
+            }
+            return qTable[key];
+        }
+
+        function chooseAction(dx, dy) {
+            // Epsilon-Greedy
+            if (Math.random() < EPSILON) {
+                return Math.floor(Math.random() * 4);
+            }
+            const qs = getQ(dx, dy);
+            const maxVal = Math.max(...qs);
+            const bestIndices = qs.map((q, i) => q === maxVal ? i : -1).filter(i => i !== -1);
+            return bestIndices[Math.floor(Math.random() * bestIndices.length)];
+        }
+
+        function learnStep() {
+            if (!targetPos) return;
+
+            const dx = targetPos.x - playerPos.x;
+            const dy = targetPos.y - playerPos.y;
+
+            const actionIdx = chooseAction(dx, dy);
+            const move = ACTIONS[actionIdx];
+            const nextPos = { x: playerPos.x + move.x, y: playerPos.y + move.y };
+
+            stepsTaken++;
+
+            // Check Validity
+            const isOffBoard = nextPos.x < 0 || nextPos.x >= BOARD_SIZE || nextPos.y < 0 || nextPos.y >= BOARD_SIZE;
+
+            let reward = -1; // Standard penalty for time
+
+            if (isOffBoard) {
+                reward = -10;
+                const qs = getQ(dx, dy);
+                const maxNext = Math.max(...qs);
+                qs[actionIdx] += ALPHA * (reward + GAMMA * maxNext - qs[actionIdx]);
+            } else {
+                // Move to next position
+                playerPos = nextPos;
+
+                // Check if reached target
+                const isTerminal = (playerPos.x === targetPos.x && playerPos.y === targetPos.y);
+
+                if (isTerminal) {
+                    // Target reached! Calculate reward
+                    // reward = (distanceToTarget * 2) - (squares to get to target)
+                    const calculatedReward = (initialDistance * 2) - stepsTaken;
+                    score += calculatedReward;
+                    reward = 100; // Internal Q-learning reward for reaching target
+
+                    currentStatusText = `Target Hit! Reward: ${calculatedReward.toFixed(2)} (${initialDistance}*2 - ${stepsTaken})`;
+
+                    // Spawn new target after a brief moment
+                    setTimeout(() => {
+                        spawnRandomTarget();
+                    }, 100);
+
+                    targetPos = null; // Clear current target temporarily
+                } else {
+                    reward = -1; // Small penalty for each step
+                }
+
+                const nextDx = targetPos ? targetPos.x - playerPos.x : 0;
+                const nextDy = targetPos ? targetPos.y - playerPos.y : 0;
+
+                // If terminal (goal reached), maxNext is 0
+                const maxNext = isTerminal ? 0 : Math.max(...getQ(nextDx, nextDy));
+
+                const qs = getQ(dx, dy);
+                qs[actionIdx] += ALPHA * (reward + GAMMA * maxNext - qs[actionIdx]);
+            }
+        }
+
+        // --- Main Logic ---
+        function performLogicStep() {
+            // If no target exists, spawn one
+            if (!targetPos) {
+                spawnRandomTarget();
+            } else {
+                // AI takes a step toward the target
+                learnStep();
+            }
+        }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            const loopAction = () => {
+                if (!isPaused) {
+                    const iterations = turboToggle.checked ? 10 : 1;
+                    for (let i = 0; i < iterations; i++) {
+                        performLogicStep();
+                    }
+                    updateView();
+                }
+                gameLoop();
+            };
+
+            if (speedMs < 17) {
+                requestAnimationFrame(loopAction);
+            } else {
+                setTimeout(loopAction, speedMs);
+            }
+        }
+
+        // Initial setup
+        createBoard();
+        spawnRandomTarget(); // Spawn first target
+        score = 0; // Start with 0 score
+        updateView();
+
+        // Start Loop
+        gameLoop();
+    </script>
+</body>
+
+</html>
