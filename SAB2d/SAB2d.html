@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Do the epic on the end. -->
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Brainrot 2D</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+            font-family: sans-serif;
+            color: white
+        }
+
+        #game {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #222
+        }
+
+        /* PLAYER */
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: lime;
+            z-index: 6
+        }
+
+        /* RED BAND */
+        #redBand {
+            position: absolute;
+            left: 0;
+            top: 60px;
+            width: 100%;
+            height: 80px;
+            background: red
+        }
+
+        /* BRAINROTS */
+        .blueSquare,
+        .greenSquare {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            top: 20px
+        }
+
+        .blueSquare {
+            background: blue
+        }
+
+        .greenSquare {
+            background: green
+        }
+
+        /* TAGS */
+        .tag {
+            position: absolute;
+            top: -55px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            pointer-events: none
+        }
+
+        .name {
+            color: white
+        }
+
+        .rank-common,
+        .cost {
+            color: limegreen
+        }
+
+        .rank-rare {
+            color: #008B8B
+        }
+
+        .rank-epic {
+            color: #9b59b6;
+            text-shadow: 0 0 5px #9b59b6;
+        }
+
+        .rank-legendary {
+            color: #FFFF00;
+            text-shadow: 0 0 5px #FFFF00;
+        }
+
+        .rank-mythic {
+            color: #8B0000;
+            text-shadow: 0 0 5px #8B0000;
+            font-weight: bold;
+        }
+
+        .mutation {
+            font-weight: bold;
+            font-size: 11px;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        }
+
+        .mutationOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            opacity: 0.8;
+            z-index: 5;
+        }
+
+        .makes {
+            color: yellow
+        }
+
+        /* BASE */
+        #base {
+            position: absolute;
+            left: 50%;
+            bottom: 25px;
+            transform: translateX(-50%);
+            width: 416px;
+            height: 416px;
+            background: #008080;
+            border: 10px solid black;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            z-index: 5
+        }
+
+        .sideContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+            justify-content: center
+        }
+
+        .slot {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            position: relative
+        }
+
+        .slotBox {
+            width: 50px;
+            height: 50px;
+            background: #333;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2
+        }
+
+        .slotBar {
+            width: 15px;
+            height: 50px;
+            background: #76c747;
+            border: 2px solid black;
+            writing-mode: vertical-lr;
+            font-size: 10px;
+            font-weight: bold;
+            color: black;
+            z-index: 1
+        }
+
+        #leftSlots .slot {
+            flex-direction: row
+        }
+
+        #rightSlots .slot {
+            flex-direction: row-reverse
+        }
+
+        /* DOOR */
+        #specialDoor {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 25px;
+            background: #c0392b;
+            border: 3px solid black;
+            z-index: 10
+        }
+
+        /* UI */
+        #moneyCounter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: #00ff00;
+            font-family: monospace;
+            z-index: 20
+        }
+
+        #proximityHint,
+        #sellHint {
+            position: absolute;
+            display: none;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 20
+        }
+
+        #proximityHint {
+            background: rgba(0, 0, 0, .7)
+        }
+
+        #sellHint {
+            background: rgba(139, 0, 0, .8);
+            color: yellow
+        }
+
+        #noMoney {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 26px;
+            font-weight: bold;
+            color: rgb(23, 20, 23);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .5s;
+            z-index: 30
+        }
+
+        .brainrotSprite {
+            width: 54px;
+            height: 54px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: absolute;
+            top: 13px;
+        }
+
+        .inventorySprite {
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 1px solid white;
+            position: relative;
+        }
+
+        /* NEW UI */
+
+        /* NEW UI */
+        #saveControls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+        }
+
+        #saveInput {
+            width: 150px;
+            height: 40px;
+            font-size: 10px;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #555;
+            resize: none;
+            font-family: monospace;
+        }
+
+        .smallBtn {
+            font-size: 10px;
+            padding: 2px 5px;
+            cursor: pointer;
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+        }
+
+        #restartBtn {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            padding: 8px 12px;
+            background: #c0392b;
+            color: white;
+            border: 2px solid black;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        #restartBtn:hover {
+            background: #e74c3c;
+        }
+
+        /* COMMAND CENTER */
+        #commandInput {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: #ccc;
+            color: #333;
+            border: none;
+            border-top: 2px solid #999;
+            padding: 0 15px;
+            font-family: monospace;
+            font-size: 16px;
+            z-index: 200;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        #commandSuggestions {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            background: rgba(200, 200, 200, 0.9);
+            color: #111;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            border-top: 1px solid #999;
+            box-sizing: border-box;
+        }
+
+        .suggestionItem {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: monospace;
+            border-bottom: 1px solid #bbb;
+        }
+
+        .suggestionItem:hover {
+            background: #eee;
+        }
+
+        .suggestionItem.selected {
+            background: #555;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game">
+        <div id="redBand"></div>
+
+        <div id="base">
+            <div id="leftSlots" class="sideContainer"></div>
+            <div id="rightSlots" class="sideContainer"></div>
+            <div id="specialDoor"></div>
+        </div>
+
+        <div id="player"></div>
+        <div id="proximityHint">E</div>
+        <div id="sellHint">F (Sell)</div>
+        <div id="moneyCounter">Money: $100</div>
+        <div id="noMoney">Not Enough Money</div>
+        <div id="commandSuggestions"></div>
+        <input type="text" id="commandInput" placeholder="Type command..." autocomplete="off">
+    </div>
+
+    <button id="restartBtn">Restart Game</button>
+    <div id="saveControls">
+        <textarea id="saveInput" placeholder="Save Data..."></textarea>
+        <button class="smallBtn" id="loadManualBtn">Load Save</button>
+    </div>
+
+    <script>
+        /* ===== DATA ===== */
+        const brainrotData = {
+            "0": { name: "Noobini Pizzanini", rank: "Common", cost: 25, makes: 1, flipped: true },
+            "1": { name: "Lirili Larila", rank: "Common", cost: 250, makes: 3, flipped: true },
+            "2": { name: "Tim Cheese", rank: "Common", cost: 500, makes: 5, flipped: true },
+            "3": { name: "Fluriflura", rank: "Common", cost: 750, makes: 7, flipped: true },
+            "4": { name: "Talpa Di Fero", rank: "Common", cost: 1000, makes: 9, flipped: true },
+            "5": { name: "Svinina Bombardino", rank: "Common", cost: 1200, makes: 10, flipped: true },
+            "6": { name: "Racooni Jandelini", rank: "Common", cost: 1300, makes: 12, flipped: false },
+            "7": { name: "Pipi Kiwi", rank: "Common", cost: 1500, makes: 13, flipped: true },
+            "8": { name: "Tartaragno", rank: "Common", cost: 1500, makes: 13, flipped: false },
+            "9": { name: "Pipi Corni", rank: "Common", cost: 1700, makes: 14, flipped: true },
+
+            "a": { name: "Bandito Bobrito", rank: "Rare", cost: 4500, makes: 35, flipped: true },
+            "b": { name: "Boneca Ambalabu", rank: "Rare", cost: 5000, makes: 40, flipped: true },
+            "c": { name: "Cacto Hipopotamo", rank: "Rare", cost: 6500, makes: 50, flipped: true },
+            "d": { name: "Gangster Footera", rank: "Rare", cost: 4000, makes: 30, flipped: false },
+            "e": { name: "Pipi Avocado", rank: "Rare", cost: 9500, makes: 70, flipped: true },
+            "f": { name: "Ta Ta Ta Ta Sahur", rank: "Rare", cost: 7500, makes: 55, flipped: true },
+            "g": { name: "Tric Trac Baraboom", rank: "Rare", cost: 9000, makes: 65, flipped: false },
+            "h": { name: "Trippi Troppi", rank: "Rare", cost: 2000, makes: 15, flipped: true },
+            "i": { name: "Pinealotto Fruttarino", rank: "Rare", cost: 9700, makes: 75, flipped: true },
+
+            "j": { name: "Cappuciono Assasino", rank: "Epic", cost: 10000, makes: 75, flipped: true },
+            "k": { name: "Brr Brr Patapim", rank: "Epic", cost: 15000, makes: 100, flipped: false },
+            "l": { name: "Trulimero Trulicina", rank: "Epic", cost: 20000, makes: 125, flipped: true },
+            "m": { name: "Bambini Crostini", rank: "Epic", cost: 22500, makes: 130, flipped: true },
+            "n": { name: "Dolfinita Bananita", rank: "Epic", cost: 25000, makes: 150, flipped: true },
+            "o": { name: "Perochello Lemonchello", rank: "Epic", cost: 30000, makes: 175, flipped: true },
+            "p": { name: "Bri Bri Dicus Bicus Bombicus", rank: "Epic", cost: 30000, makes: 175, flipped: true },
+            "q": { name: "Avocadini Guffo", rank: "Epic", cost: 30000, makes: 225, flipped: true },
+            "r": { name: "Salamino Penuino", rank: "Epic", cost: 40000, makes: 250, flipped: true },
+            "s": { name: "Penguino Cocosino", rank: "Epic", cost: 45000, makes: 300, flipped: false },
+            "t": { name: "Avocadini Antalopini", rank: "Epic", cost: 17500, makes: 115, flipped: true },
+
+            "u": { name: "Burbaloni Loliloli", rank: "Legendary", cost: 35000, makes: 200, flipped: true },
+            "v": { name: "Chimpanzini Bananini", rank: "Legendary", cost: 50000, makes: 300, flipped: false },
+            "w": { name: "Ballerina Cappucina", rank: "Legendary", cost: 100000, makes: 500, flipped: true },
+            "x": { name: "Chef Cabracadara", rank: "Legendary", cost: 150000, makes: 600, flipped: false },
+            "y": { name: "Lionel Cactuseli", rank: "Legendary", cost: 175000, makes: 650, flipped: false },
+            "z": { name: "Glurbo Fruttodrillo", rank: "Legendary", cost: 200000, makes: 750, flipped: false },
+            "A": { name: "Blueberrinni Octopusini", rank: "Legendary", cost: 250000, makes: 1000, flipped: false },
+            "B": { name: "Pipi Potato", rank: "Legendary", cost: 265000, makes: 1100, flipped: false },
+            "C": { name: "Strawberrelli Flamingelli", rank: "Legendary", cost: 275000, makes: 1150, flipped: true },
+            "D": { name: "Pandaccini Bananini", rank: "Legendary", cost: 300000, makes: 1250, flipped: false },
+            "E": { name: "Quivioli Ameleoni", rank: "Legendary", cost: 225000, makes: 900, flipped: false },
+            "F": { name: "Sigma Boy", rank: "Legendary", cost: 325000, makes: 1350, flipped: false },
+            "G": { name: "Sigma Girl", rank: "Legendary", cost: 340000, makes: 1800, flipped: false },
+
+            "H": { name: "Bombardilo Crocodilo", rank: "Mythic", cost: 500000, makes: 2500, flipped: false },
+            "I": { name: "Bombombini Gusini", rank: "Mythic", cost: 10000000, makes: 5000, flipped: true },
+            "J": { name: "Cachorrito Melonito", rank: "Mythic", cost: 4400000, makes: 13000, flipped: true },
+            "K": { name: "Cavallo Virtuoso", rank: "Mythic", cost: 2500000, makes: 7500, flipped: true },
+            "L": { name: "Frigo Camelo", rank: "Mythic", cost: 350000, makes: 1400, flipped: true },
+            "M": { name: "Gorillo Watermelondrillo", rank: "Mythic", cost: 3000000, makes: 8000, flipped: false },
+            "N": { name: "Lerulerulerule", rank: "Mythic", cost: 3500000, makes: 8700, flipped: false },
+            "O": { name: "Orangutini Ananassini", rank: "Mythic", cost: 400000, makes: 1700, flipped: true },
+            "P": { name: "Rhino Toasterino", rank: "Mythic", cost: 450000, makes: 2100, flipped: true },
+            "Q": { name: "Te Te Te Sahur", rank: "Mythic", cost: 4000000, makes: 9500, flipped: true },
+            "R": { name: "Toiletto Focaccino", rank: "Mythic", cost: 4800000, makes: 16000, flipped: false },
+            "S": { name: "Tracoducotulu Delapeladustuz", rank: "Mythic", cost: 4200000, makes: 12000, flipped: false },
+            "T": { name: "Tracoducotulu Delapeladustuz", rank: "Mythic", cost: 4200000, makes: 12000, flipped: false },
+        };
+
+        const brainrotImg = {
+            "0": "https://static.wikia.nocookie.net/stealabr/images/a/a2/NOOB%21%21%21.png/revision/latest?cb=20251107095946",
+            "1": "https://static.wikia.nocookie.net/stealabr/images/c/c8/Liliri_Lalira.png/revision/latest?cb=20250729184448",
+            "2": "https://static.wikia.nocookie.net/stealabr/images/1/11/Tim_Cheese.png/revision/latest?cb=20250729184731",
+            "3": "https://static.wikia.nocookie.net/stealabr/images/7/77/Fluriflura.png/revision/latest?cb=20250729184916",
+            "4": "https://static.wikia.nocookie.net/stealabr/images/b/b1/Talpa_Di_Fero.png/revision/latest?cb=20250729185233",
+            "5": "https://static.wikia.nocookie.net/stealabr/images/2/26/Homicidio_doloso.png/revision/latest?cb=20250729225915",
+            "6": "https://static.wikia.nocookie.net/stealabr/images/2/2d/Raccooni.png/revision/latest?cb=20251127133032",
+            "7": "https://static.wikia.nocookie.net/stealabr/images/9/92/Pipi_Kiwi.png/revision/latest?cb=20251023015503",
+            "8": "https://static.wikia.nocookie.net/stealabr/images/d/de/Tartaragnoo.png/revision/latest?cb=20251013020010",
+            "9": "https://static.wikia.nocookie.net/stealabr/images/7/76/Peepeecorji.png/revision/latest?cb=20251212000924",
+
+            "a": "https://static.wikia.nocookie.net/stealabr/images/5/57/Messi.png/revision/latest?cb=20250902175959",
+            "b": "https://static.wikia.nocookie.net/stealabr/images/9/9c/Boneca_Ambalabu.png/revision/latest?cb=20250729231053",
+            "c": "https://static.wikia.nocookie.net/stealabr/images/a/af/Cacto_Hipopotamo1.png/revision/latest?cb=20250826091108",
+            "d": "https://static.wikia.nocookie.net/stealabr/images/7/7f/King_von.png/revision/latest?cb=20250902185714",
+            "e": "https://static.wikia.nocookie.net/stealabr/images/f/f5/-08D2AFE2-1A88-4E47-91AD-B28otoroom.png/revision/latest?cb=20251212001247",
+            "f": "https://static.wikia.nocookie.net/stealabr/images/b/b2/TaTas.png/revision/latest?cb=20250902182129",
+            "g": "https://static.wikia.nocookie.net/stealabr/images/5/5a/Tric-Trac-Baraboom-5.png/revision/latest?cb=20250730160553",
+            "h": "https://static.wikia.nocookie.net/stealabr/images/f/f0/Trippi_Troppi.png/revision/latest?cb=20251220012554",
+            "i": "https://static.wikia.nocookie.net/stealabr/images/b/ba/Pintealotto.png/revision/latest?cb=20251013015531",
+
+            "j": "img/cappucino-assasino.png",
+            "k": "img/br-br-patapim.png",
+            "l": "img/tru-tru.png",
+            "m": "img/bamcrost.png",
+            "n": "img/dolf-ban.png",
+            "o": "img/pero-lemon.png",
+            "p": "img/bri-bri.png",
+            "q": "img/avo-guffo.png",
+            "r": "img/sal-peng.png",
+            "s": "img/coco-peng.png",
+            "t": "img/avo-ant.png",
+
+            "u": "https://static.wikia.nocookie.net/stealabr/images/f/fb/BurbaloniLuliloli.png/revision/latest?cb=20251030014843",
+            "v": "https://static.wikia.nocookie.net/stealabr/images/4/47/ChimpanziniBananini.png/revision/latest?cb=20250820121632",
+            "w": "https://static.wikia.nocookie.net/stealabr/images/0/0e/Ballerina_cappucinaaaa%21%21%21.png/revision/latest?cb=20251108033515",
+            "x": "https://static.wikia.nocookie.net/stealabr/images/9/9d/Travis_scott.png/revision/latest?cb=20250902183549",
+            "y": "https://static.wikia.nocookie.net/stealabr/images/7/7d/Lionel-Cactuseli.png/revision/latest?cb=20250730161749",
+            "z": "https://static.wikia.nocookie.net/stealabr/images/d/da/GlorboFruttodrillo.png/revision/latest/scale-to-width-down/1000?cb=20250821143713",
+            "A": "https://static.wikia.nocookie.net/stealabr/images/d/d0/NewBlueberrinni.png/revision/latest?cb=20250922050721",
+            "B": "https://static.wikia.nocookie.net/stealabr/images/c/cc/POTATO.png/revision/latest?cb=20250920182758",
+            "C": "https://static.wikia.nocookie.net/stealabr/images/2/21/Strawberrelli_Flamingelli.png/revision/latest?cb=20250929145823",
+            "D": "https://static.wikia.nocookie.net/stealabr/images/0/03/Pandaccini_Bananini.png/revision/latest?cb=20251116171201",
+            "E": "https://static.wikia.nocookie.net/stealabr/images/c/cd/Quivioli_Ameleonni.png/revision/latest?cb=20250831171040",
+            "F": "https://static.wikia.nocookie.net/stealabr/images/2/24/Sig_ma_Boy.png/revision/latest?cb=20251220202502",
+            "G": "https://static.wikia.nocookie.net/stealabr/images/a/af/SigmaGirl.png/revision/latest?cb=20251006212211",
+
+            "H": "https://static.wikia.nocookie.net/stealabr/images/8/88/Bombardiro_Crocodilo.png/revision/latest?cb=20251207121709",
+            "I": "https://static.wikia.nocookie.net/stealabr/images/8/85/Avocadorilla.png/revision/latest?cb=20251128210930",
+            "J": "https://static.wikia.nocookie.net/stealabr/images/2/2d/Watermelon_Doggy.png/revision/latest?cb=20251109125954",
+            "K": "https://static.wikia.nocookie.net/stealabr/images/c/ca/Cavallo_Virtuoso.png/revision/latest?cb=20251128204759",
+            "L": "https://static.wikia.nocookie.net/stealabr/images/a/a7/Lol_Fridge.png/revision/latest?cb=20251107125708",
+            "M": "https://static.wikia.nocookie.net/stealabr/images/e/ea/Gorillo-Watermelondrillo.png/revision/latest?cb=20250730162924",
+            "N": "https://static.wikia.nocookie.net/stealabr/images/5/55/Image-removebg-preview_%287%29.png/revision/latest?cb=20251107051833",
+            "O": "https://static.wikia.nocookie.net/stealabr/images/6/69/Banana.png/revision/latest?cb=20250902181417",
+            "P": "https://static.wikia.nocookie.net/stealabr/images/1/1a/Untitled210_20250808180116.png/revision/latest?cb=20250808233001",
+            "Q": "https://static.wikia.nocookie.net/stealabr/images/3/37/Te_Te_Te_Sahur.png/revision/latest?cb=20251129112156",
+            "R": "https://static.wikia.nocookie.net/stealabr/images/5/54/Toiletto.png/revision/latest?cb=20251128204636",
+            "S": "https://static.wikia.nocookie.net/stealabr/images/8/80/Tracoducotulu.png/revision/latest?cb=20251006203120",
+
+        };
+
+        const rankPercentages = [
+            { rank: "Common", chance: 45 },
+            { rank: "Rare", chance: 32 },
+            { rank: "Epic", chance: 15 },
+            { rank: "Legendary", chance: 7 },
+            { rank: "Mythic", chance: 1 },
+        ];
+
+        const allSpawnPercentages = {
+            Common: [
+                { type: "0", chance: 23 },
+                { type: "1", chance: 15 },
+                { type: "2", chance: 13 },
+                { type: "3", chance: 11 },
+                { type: "4", chance: 10 },
+                { type: "5", chance: 7 },
+                { type: "6", chance: 6 },
+                { type: "7", chance: 6 },
+                { type: "8", chance: 5 },
+                { type: "9", chance: 4 }
+            ],
+            Rare: [
+                { type: "a", chance: 21 },
+                { type: "b", chance: 16 },
+                { type: "c", chance: 12 },
+                { type: "d", chance: 12 },
+                { type: "e", chance: 11 },
+                { type: "f", chance: 9 },
+                { type: "g", chance: 7 },
+                { type: "h", chance: 6 },
+                { type: "i", chance: 5 }
+            ],
+            Epic: [
+                { type: "j", chance: 33 },
+                { type: "k", chance: 12 },
+                { type: "l", chance: 10 },
+                { type: "m", chance: 10 },
+                { type: "n", chance: 8.5 },
+                { type: "o", chance: 7 },
+                { type: "p", chance: 7 },
+                { type: "q", chance: 4.5 },
+                { type: "r", chance: 4 },
+                { type: "s", chance: 2.5 },
+                { type: "t", chance: 1.5 },
+            ],
+            Legendary: [
+                { type: "u", chance: 20 },
+                { type: "v", chance: 15 },
+                { type: "w", chance: 12 },
+                { type: "x", chance: 10 },
+                { type: "y", chance: 9 },
+                { type: "z", chance: 8 },
+                { type: "A", chance: 7 },
+                { type: "B", chance: 6 },
+                { type: "C", chance: 5 },
+                { type: "D", chance: 3.5 },
+                { type: "E", chance: 2.5 },
+                { type: "F", chance: 1.5 },
+                { type: "G", chance: 0.5 },
+            ],
+            Mythic: [
+                { type: "H", chance: 100 },
+                { type: "I", chance: 100 },
+                { type: "J", chance: 100 },
+                { type: "K", chance: 100 },
+                { type: "L", chance: 100 },
+                { type: "M", chance: 100 },
+                { type: "N", chance: 100 },
+                { type: "O", chance: 100 },
+                { type: "P", chance: 100 },
+                { type: "Q", chance: 100 },
+                { type: "R", chance: 100 },
+                { type: "S", chance: 100 },
+                { type: "T", chance: 100 },
+            ]
+        };
+
+        const mutationData = [
+            { type: "0", name: "Gold", color: "rgb(255, 215, 0)", multiplier: 1.32, costMultiplier: 1, percentage: 70 },
+            { type: "1", name: "Daimond", color: "rgb(78, 226, 236)", multiplier: 1.46, costMultiplier: 1, percentage: 30 },
+        ];
+
+        function getMutation(mutationType) {
+            if (!mutationType) return null;
+            return mutationData.find(m => m.type === mutationType) || null;
+        }
+
+        const mutationPercentage = 27;
+
+        /* =========================================================
+           ✅ FIX: Epic-only background removal that WORKS in local file
+           The reason it "didn't work" before: CORS tainted the canvas.
+           Now we fetch Epic images via a CORS proxy -> Blob -> Canvas.
+           Then we bucket-erase from top-left (no "inside holes" erased).
+        ========================================================== */
+        function getDisplayURLForType(type) {
+            const url = brainrotImg[type] || "";
+            if (url.startsWith("img/")) {
+                return "Epic/" + url.substring(4);
+            }
+            return url;
+        }
+
+        /* ===== Formatting ===== */
+        const numberSF = [
+            { n: 3, sf: "K" }, { n: 6, sf: "M" }, { n: 9, sf: "B" }, { n: 12, sf: "T" }
+        ];
+
+        function t(num) {
+            if (num < 1000) return num.toString();
+            let suffix = "", divideBy = 1;
+            for (let i = numberSF.length - 1; i >= 0; i--) {
+                let threshold = Math.pow(10, numberSF[i].n);
+                if (num >= threshold) { suffix = numberSF[i].sf; divideBy = threshold; break; }
+            }
+            let formatted = num / divideBy;
+            let str = formatted.toFixed(1);
+            if (str.endsWith(".0")) str = str.substring(0, str.length - 2);
+            return str + suffix;
+        }
+
+        function unt(str) {
+            if (!str) return 100;
+            const sfMap = { 'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12 };
+            let lastChar = str.slice(-1).toUpperCase();
+            if (sfMap[lastChar]) {
+                let val = parseFloat(str.slice(0, -1));
+                return val * sfMap[lastChar];
+            }
+            return parseFloat(str) || 100;
+        }
+
+        /* ===== Roll Brainrot ===== */
+        function rollMutation() {
+            if (Math.random() * 100 > mutationPercentage) return null;
+            let r = Math.random() * 100, a = 0;
+            for (const m of mutationData) { a += m.percentage; if (r <= a) return m.type; }
+            return null;
+        }
+
+        function rollBrainrot() {
+            let r = Math.random() * 100, a = 0;
+            let selectedRank = "Common";
+            for (const p of rankPercentages) { a += p.chance; if (r <= a) { selectedRank = p.rank; break; } }
+
+            let spawnTable = allSpawnPercentages[selectedRank] || allSpawnPercentages["Common"];
+
+            r = Math.random() * 100; a = 0;
+            let type = "0";
+            for (const p of spawnTable) { a += p.chance; if (r <= a) { type = p.type; break; } }
+
+            const mutation = rollMutation();
+            return { type, mutation };
+        }
+
+        /* ===== STATE ===== */
+        let saveData = "";
+        let money = 100;
+        let brainrots = Array(10).fill(null).map(() => ({ type: "", earnings: 0, mutationType: null }));
+        const blueSquares = [];
+        let closestItemIndex = -1;
+        let nextSpawn = rollBrainrot();
+
+        /* ===== SAVE/LOAD ===== */
+        function saveBrainrots() {
+            if (isRestarting) return;
+            let inventoryPart = brainrots.map(b => {
+                if (!b.type) return "!";
+                return b.type + (b.mutationType || "!");
+            }).join("|");
+
+            saveData = inventoryPart + "|" + t(money);
+            localStorage.setItem("SAB2d_save", saveData);
+            document.getElementById("saveInput").value = saveData;
+        }
+
+        function loadBrainrots(manualData) {
+            const saved = manualData || localStorage.getItem("SAB2d_save");
+            if (!saved) return;
+
+            saveData = saved;
+            const parts = saved.split("|");
+
+            parts.forEach((slot, i) => {
+                if (i >= 10) return;
+                if (slot === "!") {
+                    brainrots[i] = { type: "", earnings: 0, mutationType: null };
+                } else {
+                    const type = slot[0];
+                    const mutationType = slot.length > 1 && slot[1] !== "!" ? slot[1] : null;
+                    brainrots[i] = { type, earnings: 0, mutationType };
+                }
+            });
+
+            if (parts.length > 10) {
+                money = unt(parts[10]);
+                updateMoneyUI();
+            }
+            updateSlotsUI();
+        }
+
+        let isRestarting = false;
+        function restartGame() {
+            if (confirm("Are you SURE you want to restart? All progress will be lost!")) {
+                isRestarting = true;
+                localStorage.removeItem("SAB2d_save");
+                location.reload();
+            }
+        }
+
+        /* ===== UI ===== */
+        const redBand = document.getElementById("redBand");
+        const leftSlots = document.getElementById("leftSlots");
+        const rightSlots = document.getElementById("rightSlots");
+        const moneyCounter = document.getElementById("moneyCounter");
+        const noMoney = document.getElementById("noMoney");
+        const hint = document.getElementById("proximityHint");
+        const sellHint = document.getElementById("sellHint");
+
+        function updateMoneyUI() { moneyCounter.textContent = `Money: $${t(money)}` }
+
+        function updateSlotsUI() {
+            leftSlots.innerHTML = ""; rightSlots.innerHTML = "";
+            brainrots.forEach((b, i) => {
+                const s = document.createElement("div");
+                s.className = "slot";
+
+                let icon = "";
+                if (b.type) {
+                    const displaySrc = getDisplayURLForType(b.type);
+                    const isFlipped = brainrotData[b.type]?.flipped;
+                    const transformStyle = isFlipped ? "transform: scaleX(-1);" : "";
+                    const mutation = getMutation(b.mutationType);
+                    const mutationOverlay = mutation
+                        ? `<div class="mutationOverlay"
+                 style="background-color:${mutation.color};
+                        -webkit-mask-image:url('${displaySrc}');
+                        mask-image:url('${displaySrc}');"></div>`
+                        : "";
+
+                    icon = `<div class="inventorySprite" style="background-image:url('${displaySrc}'); ${transformStyle}">${mutationOverlay}</div>`;
+                }
+
+                s.innerHTML = `
+          <div class="slotBox">${icon}</div>
+          <div class="slotBar">${b.earnings ? `$${t(b.earnings)}` : ""}</div>
+        `;
+                (i < 5 ? leftSlots : rightSlots).appendChild(s);
+            });
+        }
+
+        updateMoneyUI(); updateSlotsUI();
+
+        // Setup event listeners and load data
+        document.getElementById("restartBtn").addEventListener("click", restartGame);
+        document.getElementById("loadManualBtn").addEventListener("click", () => {
+            const val = document.getElementById("saveInput").value.trim();
+            if (val) loadBrainrots(val);
+        });
+
+        loadBrainrots();
+        saveBrainrots();
+        setInterval(saveBrainrots, 60000);
+        window.addEventListener("beforeunload", saveBrainrots);
+        window.addEventListener("unload", saveBrainrots);
+
+        function showNoMoney() {
+            noMoney.style.opacity = 1;
+            setTimeout(() => noMoney.style.opacity = 0, 1000);
+        }
+
+        /* ===== PLAYER ===== */
+        const player = document.getElementById("player");
+        let x = 100, y = 300, keys = {};
+
+        /* ===== COMMAND CENTER LOGIC ===== */
+        const commandList = [
+            "/savedata show",
+            "/savedata hide",
+            "/savedata edit true",
+            "/savedata edit false",
+            "/savedata set",
+            "/gamerestart",
+            "/spawnbrainrot"
+        ];
+        let currentSuggestions = [];
+        let selectedSuggestionIndex = -1;
+
+        function updateSuggestions(val) {
+            const suggestionsDiv = document.getElementById("commandSuggestions");
+            if (!val || !val.startsWith("/")) {
+                suggestionsDiv.style.display = "none";
+                selectedSuggestionIndex = -1;
+                return;
+            }
+
+            // Word-based filtering (matches if any part contains the input)
+            currentSuggestions = commandList
+                .filter(cmd => cmd.toLowerCase().includes(val.toLowerCase()))
+                .sort()
+                .slice(0, 5);
+
+            if (currentSuggestions.length > 0) {
+                suggestionsDiv.style.display = "flex";
+                renderSuggestions();
+            } else {
+                suggestionsDiv.style.display = "none";
+                selectedSuggestionIndex = -1;
+            }
+        }
+
+        function renderSuggestions() {
+            const suggestionsDiv = document.getElementById("commandSuggestions");
+            suggestionsDiv.innerHTML = currentSuggestions.map((cmd, i) =>
+                `<div class="suggestionItem ${i === selectedSuggestionIndex ? 'selected' : ''}" 
+                      onclick="selectSuggestion('${cmd}')">${cmd}</div>`
+            ).join("");
+        }
+
+        window.selectSuggestion = function (cmd, isSpace = false) {
+            const cmdInput = document.getElementById("commandInput");
+            cmdInput.value = cmd + (isSpace ? " " : "");
+            cmdInput.focus();
+            selectedSuggestionIndex = -1;
+            updateSuggestions(cmdInput.value);
+        };
+
+        window.addEventListener("keydown", e => {
+            const cmdInput = document.getElementById("commandInput");
+            if (e.key === "/" && document.activeElement !== cmdInput) {
+                e.preventDefault();
+                cmdInput.style.display = "block";
+                cmdInput.value = "/";
+                cmdInput.focus();
+                selectedSuggestionIndex = 0; // Default to first match
+                updateSuggestions("/");
+                return;
+            }
+
+            if (document.activeElement === cmdInput) {
+                if (e.key === "Enter") {
+                    const val = cmdInput.value.trim();
+                    cmdInput.style.display = "none";
+                    document.getElementById("commandSuggestions").style.display = "none";
+                    cmdInput.value = "";
+                    cmdInput.blur();
+
+                    if (val.startsWith("/savedata ")) {
+                        const parts = val.split(" ");
+                        const sub = parts[1];
+                        if (sub === "show") {
+                            document.getElementById("saveControls").style.display = "flex";
+                        } else if (sub === "hide") {
+                            document.getElementById("saveControls").style.display = "none";
+                        } else if (sub === "edit") {
+                            const bool = parts[2] === "true";
+                            document.getElementById("saveInput").readOnly = !bool;
+                        } else if (sub === "set") {
+                            const data = parts.slice(2).join(" ");
+                            if (data) {
+                                loadBrainrots(data);
+                                saveBrainrots();
+                            }
+                        }
+                    } else if (val.startsWith("/spawnbrainrot ")) {
+                        const raw = val.substring(15).trim();
+                        let type, mutationType = null;
+                        let namePart = "", after = "";
+
+                        if (raw.startsWith("'") || raw.startsWith('"')) {
+                            const q = raw[0];
+                            const eq = raw.indexOf(q, 1);
+                            if (eq !== -1) {
+                                namePart = raw.substring(1, eq);
+                                for (const id in brainrotData) {
+                                    if (brainrotData[id].name === namePart) { type = id; break; }
+                                }
+                                after = raw.substring(eq + 1).trim();
+                            }
+                        } else {
+                            const parts = raw.split(" ");
+                            type = parts[0];
+                            after = parts.slice(1).join(" ");
+                        }
+
+                        if (after.toLowerCase().includes("mutation:")) {
+                            let mutPart = after.split(/mutation:/i)[1].trim();
+                            if (mutPart.startsWith("'") || mutPart.startsWith('"')) {
+                                const q2 = mutPart[0];
+                                const eq2 = mutPart.indexOf(q2, 1);
+                                if (eq2 !== -1) mutPart = mutPart.substring(1, eq2);
+                            }
+                            const searchMut = mutPart.toLowerCase();
+                            if (searchMut !== "none") {
+                                const mut = mutationData.find(m =>
+                                    m.name.toLowerCase() === searchMut ||
+                                    (searchMut === "diamond" && m.name.toLowerCase() === "daimond")
+                                );
+                                if (mut) mutationType = mut.type;
+                            }
+                        }
+
+                        if (type && brainrotData[type]) {
+                            nextSpawn = { type, mutation: mutationType };
+                        }
+                    } else if (val === "/gamerestart") {
+                        isRestarting = true;
+                        localStorage.removeItem("SAB2d_save");
+                        location.reload();
+                    }
+                } else if (e.key === "Tab") {
+                    e.preventDefault();
+                    if (currentSuggestions.length > 0) {
+                        selectedSuggestionIndex = (selectedSuggestionIndex + 1) % currentSuggestions.length;
+                        renderSuggestions();
+                    }
+                } else if (e.key === " ") {
+                    if (selectedSuggestionIndex >= 0 && currentSuggestions[selectedSuggestionIndex]) {
+                        e.preventDefault();
+                        selectSuggestion(currentSuggestions[selectedSuggestionIndex], true);
+                    } else {
+                        setTimeout(() => updateSuggestions(cmdInput.value), 0);
+                    }
+                } else if (e.key === "Escape") {
+                    cmdInput.style.display = "none";
+                    document.getElementById("commandSuggestions").style.display = "none";
+                    cmdInput.blur();
+                } else {
+                    // Update suggestions on other keys
+                    setTimeout(() => {
+                        selectedSuggestionIndex = 0; // Reset to first match on typing
+                        updateSuggestions(cmdInput.value);
+                    }, 0);
+                }
+                return;
+            }
+
+            keys[e.key.toLowerCase()] = true;
+
+            if (e.key.toLowerCase() === "e" && closestItemIndex !== -1) {
+                const sq = blueSquares[closestItemIndex];
+                const type = sq.brainrotType;
+                const mutationType = sq.brainrotMutationType;
+                const mutation = getMutation(mutationType);
+                const baseCost = brainrotData[type].cost;
+                const rawCost = mutation ? baseCost * mutation.costMultiplier : baseCost;
+                const cost = Math.floor(rawCost * 10) / 10;
+                const slot = brainrots.findIndex(b => b.type === "");
+
+                if (money < cost) { showNoMoney(); return; }
+
+                if (slot !== -1) {
+                    money -= cost;
+                    brainrots[slot] = { type, earnings: 0, mutationType };
+                    sq.tag.remove(); sq.remove();
+                    blueSquares.splice(closestItemIndex, 1);
+                    closestItemIndex = -1;
+                    saveBrainrots();
+                    updateMoneyUI(); updateSlotsUI();
+                }
+            }
+
+            if (e.key.toLowerCase() === "f") {
+                const pRect = player.getBoundingClientRect();
+                [...leftSlots.children, ...rightSlots.children].forEach((slot, i) => {
+                    const b = brainrots[i];
+                    if (b.type) {
+                        const box = slot.querySelector(".slotBox").getBoundingClientRect();
+                        if (pRect.left < box.right && pRect.right > box.left && pRect.top < box.bottom && pRect.bottom > box.top) {
+                            const cost = brainrotData[b.type].cost;
+                            money += Math.floor(cost / 2);
+                            brainrots[i] = { type: "", earnings: 0, mutationType: null };
+                            saveBrainrots();
+                            updateMoneyUI(); updateSlotsUI();
+                            document.getElementById("sellHint").style.display = "none";
+                        }
+                    }
+                });
+            }
+        });
+
+        window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+        function spawnBrainrotUI(type, mutationType = null) {
+            const mutation = getMutation(mutationType);
+            const sq = document.createElement("div");
+            sq.className = "brainrotSprite";
+            const displaySrc = getDisplayURLForType(type);
+            sq.style.backgroundImage = `url('${displaySrc}')`;
+            sq.style.left = "-40px";
+            if (brainrotData[type].flipped) sq.style.transform = "scaleX(-1)";
+            sq.brainrotType = type;
+            sq.brainrotMutationType = mutationType;
+
+            if (mutation) {
+                const overlay = document.createElement("div");
+                overlay.className = "mutationOverlay";
+                overlay.style.backgroundColor = mutation.color;
+                overlay.style.webkitMaskImage = `url('${displaySrc}')`;
+                overlay.style.maskImage = `url('${displaySrc}')`;
+                sq.appendChild(overlay);
+            }
+
+            const tag = document.createElement("div");
+            tag.className = "tag";
+            const rank = brainrotData[type].rank;
+            const rankClass = "rank-" + rank.toLowerCase();
+            const baseCost = brainrotData[type].cost;
+            const rawCost = mutation ? baseCost * mutation.costMultiplier : baseCost;
+            const cost = Math.floor(rawCost * 10) / 10;
+            const baseMakes = brainrotData[type].makes;
+            const rawMakes = mutation ? baseMakes * mutation.multiplier : baseMakes;
+            const makes = Math.floor(rawMakes * 10) / 10;
+            const mutationTag = mutation ? `<div class="mutation" style="color:${mutation.color}">${mutation.name}</div>` : "";
+
+            tag.innerHTML = `
+                <div class="name">${brainrotData[type].name}</div>
+                <div class="${rankClass}">${brainrotData[type].rank}</div>
+                ${mutationTag}
+                <div class="cost">${t(cost)}$</div>
+                <div class="makes">${t(makes)}$/s</div>
+            `;
+            sq.tag = tag;
+            const redBand = document.getElementById("redBand");
+            redBand.appendChild(sq);
+            redBand.appendChild(tag);
+            blueSquares.push(sq);
+        }
+
+        /* ===== LOOP ===== */
+        let lastTime = performance.now(), lastSpawn = 0, lastIncome = 0;
+        setInterval(() => {
+            const now = performance.now(), dt = (now - lastTime) / 1000;
+            lastTime = now;
+
+            /* INCOME */
+            lastIncome += dt;
+            if (lastIncome >= 1) {
+                lastIncome = 0;
+                brainrots.forEach(b => {
+                    if (b.type) {
+                        const mutation = getMutation(b.mutationType);
+                        const baseMakes = brainrotData[b.type].makes;
+                        const rawMakes = mutation ? baseMakes * mutation.multiplier : baseMakes;
+                        const makes = Math.floor(rawMakes * 10) / 10;
+                        b.earnings += makes;
+                        b.earnings = Math.floor(b.earnings * 10) / 10;
+                    }
+                });
+                updateSlotsUI();
+            }
+
+            /* MOVE PLAYER */
+            let speed = 300;
+            if (keys.shift) speed *= 1.4;
+            let move = speed * dt;
+            let oldX = x, oldY = y;
+            if (keys.w) y -= move;
+            if (keys.s) y += move;
+            if (keys.a) x -= move;
+            if (keys.d) x += move;
+            x = Math.max(0, Math.min(innerWidth - 50, x));
+            y = Math.max(0, Math.min(innerHeight - 50, y));
+
+            /* BASE COLLISION Logic */
+            const baseRect = document.getElementById("base").getBoundingClientRect();
+
+            const pL = x, pR = x + 50, pT = y, pB = y + 50;
+            const nearBase = pL < baseRect.right && pR > baseRect.left &&
+                pT < baseRect.bottom && pB > baseRect.top;
+
+            if (nearBase) {
+                const bL = baseRect.left + 10;
+                const bR = baseRect.right - 10;
+                const bT = baseRect.top + 10;
+                const bB = baseRect.bottom - 10;
+
+                const doorRect = document.getElementById("specialDoor").getBoundingClientRect();
+                const dL = doorRect.left;
+                const dR = doorRect.right;
+
+                if (pR > baseRect.left && pL < bL && pT < bB && pB > bT) x = oldX; // left
+                if (pL < baseRect.right && pR > bR && pT < bB && pB > bT) x = oldX; // right
+                if (pT < baseRect.bottom && pB > bB && pL < bR && pR > bL) y = oldY; // bottom
+
+                if (pB > baseRect.top && pT < bT) {
+                    const inDoorGap = pR > dL && pL < dR;
+                    if (!inDoorGap) y = oldY;
+                }
+            }
+
+            player.style.left = x + "px";
+            player.style.top = y + "px";
+
+            /* COLLECT MONEY */
+            const pRect = player.getBoundingClientRect();
+            [...leftSlots.children, ...rightSlots.children].forEach((slot, i) => {
+                const b = brainrots[i];
+                if (b.type && b.earnings > 0) {
+                    const bar = slot.querySelector(".slotBar").getBoundingClientRect();
+                    if (pRect.left < bar.right && pRect.right > bar.left && pRect.top < bar.bottom && pRect.bottom > bar.top) {
+                        money += b.earnings;
+                        money = Math.floor(money * 10) / 10;
+                        b.earnings = 0;
+                        updateMoneyUI(); updateSlotsUI();
+                    }
+                }
+            });
+
+            /* SPAWN */
+            lastSpawn += dt * 1000;
+            if (lastSpawn > 1500) {
+                lastSpawn = 0;
+                spawnBrainrotUI(nextSpawn.type, nextSpawn.mutation);
+                nextSpawn = rollBrainrot();
+            }
+
+            /* MOVE + PICKUP HINT + DESPAWN */
+            closestItemIndex = -1;
+            for (let i = blueSquares.length - 1; i >= 0; i--) {
+                const sq = blueSquares[i];
+                let l = parseFloat(sq.style.left) + 150 * dt;
+                sq.style.left = l + "px";
+                sq.tag.style.left = l + "px";
+
+                if (l > window.innerWidth) {
+                    sq.tag.remove();
+                    sq.remove();
+                    blueSquares.splice(i, 1);
+                    continue;
+                }
+
+                const r = sq.getBoundingClientRect();
+                if (pRect.left < r.right && pRect.right > r.left && pRect.top < r.bottom && pRect.bottom > r.top) {
+                    closestItemIndex = i;
+                    hint.style.display = "block";
+                    hint.style.left = r.left + "px";
+                    hint.style.top = (r.top - 30) + "px";
+                }
+            }
+            if (closestItemIndex === -1) hint.style.display = "none";
+
+            /* SELLING HINT */
+            const sellHintEl = document.getElementById("sellHint");
+            let showSell = false;
+            [...leftSlots.children, ...rightSlots.children].forEach((slot, i) => {
+                const b = brainrots[i];
+                if (b.type) {
+                    const box = slot.querySelector(".slotBox").getBoundingClientRect();
+                    if (pRect.left < box.right && pRect.right > box.left && pRect.top < box.bottom && pRect.bottom > box.top) {
+                        showSell = true;
+                        sellHintEl.style.left = box.left + "px";
+                        sellHintEl.style.top = (box.top - 30) + "px";
+                        const cost = brainrotData[b.type].cost;
+                        const refund = Math.floor(cost / 2);
+                        sellHintEl.textContent = `F (Sell $${t(refund)})`;
+                    }
+                }
+            });
+            sellHintEl.style.display = showSell ? "block" : "none";
+        }, 24);
+    </script>
+</body>
+
+</html>
