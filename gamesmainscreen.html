@@ -1,470 +1,577 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Games Main Screen</title>
-        <style>
-            /* Left side styles from hard-games */
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-right: 200px;
+        }
+
+        /* Sections Sidebar */
+        .sections-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 180px;
+            height: 100vh;
+            background: #16213e;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sections-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: left;
+        }
+
+        .section-btn:hover {
+            background: rgba(78, 204, 163, 0.2);
+            transform: translateX(-3px);
+        }
+
+        .section-btn.active {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+
+        .section-btn .section-icon {
+            font-size: 16px;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: #16213e;
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 300px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            border-color: #4ecca3;
+            box-shadow: 0 0 20px rgba(78, 204, 163, 0.3);
+        }
+
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            opacity: 0.7;
+        }
+
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 80px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            font-size: 28px;
+        }
+
+        /* Games Grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(51px, 1fr));
+            gap: 10px;
+        }
+
+        /* Game Cards */
+        .game-card {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-image {
+            width: 100%;
+            height: 100%;
+            background: limegreen;
+            object-fit: cover;
+        }
+
+        .game-tag {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            padding: 12px 4px 4px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover .game-tag {
+            transform: translateY(0);
+        }
+
+        .game-name {
+            font-size: 8px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .game-category {
+            font-size: 6px;
+            color: #4ecca3;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Extra Fun Games Banner */
+        .extra-fun-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 300% 300%;
+            animation: gradient-shift 5s ease infinite;
+            border-radius: 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .extra-fun-banner:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .extra-fun-icon {
+            font-size: 28px;
+        }
+
+        .extra-fun-text {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .extra-fun-arrow {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .extra-fun-banner:hover .extra-fun-arrow {
+            transform: translateX(5px);
+        }
+
+        /* Recents Section */
+        .recents-section {
+            display: none;
+        }
+
+        .recents-section.has-recents {
+            display: block;
+        }
+
+        .recents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+        }
+
+        .recents-grid .game-card {
+            aspect-ratio: 1.2;
+        }
+
+        .clear-recents {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-recents:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-bar {
+                width: 250px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+
+            .sections-sidebar {
+                width: 140px;
+            }
+
             .container {
-                text-align: center;
-                width: 85%;
-                height: 85%;
-                padding: 30px 20px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 20px;
-                backdrop-filter: blur(10px);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                overflow: hidden;
-                box-sizing: border-box;
-                margin: 0 auto;
+                margin-right: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-container {
+                left: 10px;
+                right: 10px;
+                top: 10px;
             }
 
-            .main-title {
-                font-size: 5em;
-                font-weight: bold;
-                margin-bottom: 40px;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-                color: white;
-            }
-
-            .button-container {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-                align-items: center;
-                flex-grow: 1;
-                justify-content: center;
+            .search-bar {
                 width: 100%;
-                max-width: 100%;
-                padding: 0 10px;
-                box-sizing: border-box;
-                overflow-y: auto;
-                /* Add some padding at the bottom for scrolling */
-                padding-bottom: 15px;
-                margin-top: 10px;
             }
 
-            .game-button {
-                padding: 15px 30px;
-                font-size: 1.6em;
-                font-weight: bold;
-                color: white;
-                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%; /* Full width to be controlled by JS */
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                text-align: center;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                margin: 0 auto;
+            .container {
+                padding: 15px;
+                margin-right: 0;
             }
 
-            .game-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-                background: linear-gradient(45deg, #ff5252, #d63031);
+            .main-content {
+                padding-top: 70px;
             }
 
-            .external-button {
-                background: linear-gradient(45deg, #00b894, #00a085);
+            .sections-sidebar {
+                display: none;
             }
+        }
+    </style>
+</head>
 
-            .external-button:hover {
-                background: linear-gradient(45deg, #00a085, #008f7a);
-            }
+<body>
+    <div class="search-container">
+        <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="search-input" placeholder="Search games..." id="searchInput">
+        </div>
+    </div>
 
-            .subtitle {
-                font-size: 1.6em;
-                margin-bottom: 50px;
-                opacity: 0.9;
-                font-weight: 300;
-                color: white;
-            }
+    <!-- Sections Sidebar -->
+    <div class="sections-sidebar">
+        <div class="sections-title">Sections</div>
+        <a href="https://viyanajith.github.io/classic-games/mainscreen.html" class="section-btn">
+            <span class="section-icon">🎲</span>
+            Classic Games
+        </a>
+        <a href="https://viyanajith.github.io/simple-games/" class="section-btn">
+            <span class="section-icon">🎯</span>
+            Simple Games
+        </a>
+        <a href="https://viyanajith.github.io/simulator-games/mainscreen.html" class="section-btn">
+            <span class="section-icon">🚗</span>
+            Simulator Games
+        </a>
+        <a href="https://viyanajith.github.io/hard-games/mainscreen.html" class="section-btn">
+            <span class="section-icon">💪</span>
+            Hard Games
+        </a>
+        <a href="https://viyanajith.github.io/platformer-games/mainscreen.html" class="section-btn">
+            <span class="section-icon">🏃</span>
+            Platformer Games
+        </a>
+    </div>
 
-            @media (max-width: 600px) {
-                .main-title {
-                    font-size: 2.5em;
-                }
-                
-                .container {
-                    margin: 20px;
-                    padding: 30px 20px;
-                }
-                
-                .game-button {
-                    min-width: 200px;
-                    font-size: 1.1em;
-                }
-            }
-            
-            /* Right side styles */
-            body {
-                margin: 0;
-                padding: 0;
-                height: 100vh;
-                background: rgb(23,20,23);
-            }
-            .vertical-strip {
-                width: 20px;
-                height: 100vh;
-                background-color: whitesmoke;
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                top: 0;
-            }
-            
-            .horizontal-strip {
-                height: 20px;
-                background-color: whitesmoke;
-                position: absolute;
-                left: calc(50% + 10px); /* 50% + half of vertical strip width */
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-            
-            /* Common styles for quadrant containers */
-            .quadrant {
-                position: absolute;
-                width: calc(50% - 10px);
-                height: calc(50% - 10px);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-            
-            /* Right side quadrants */
-            .right-quadrant { left: calc(50% + 10px); } /* Right of vertical strip */
-            .top-right-part { top: 0; right: 0; }
-            .bottom-right-part { bottom: 0; right: 0; top: calc(50% + 10px); }
-            
-            /* Left side container */
-            .left-side {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: calc(50% - 10px); /* Left of vertical strip */
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-            
-            /* Common button styles */
-            .btn {
-                width: 80%; height: 80%;
-                color: white; border: none; border-radius: 15px;
-                font-weight: bold; text-decoration: none;
-                display: flex; justify-content: center; align-items: center;
-                transition: all 0.3s ease;
-                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-                position: relative; overflow: hidden; cursor: pointer;
-                text-align: center;
-            }
-            
-            /* Button colors */
-            .back-btn { background-color: #ff6b6b; }
-            .back-btn:hover { background-color: #ff8787; }
-            .fun-btn { background-color: lightgreen; }
-            .fun-btn:hover { background-color: #90ee90; }
-            
-            /* Text styles */
-            .back-btn span { font-size: 225px; }
-            .fun-btn span { 
-                font-size: 65px; 
-                text-align: center;
-                padding: 10px;
-                white-space: nowrap;
-            }
-            
-            .btn span {
-                display: block; 
-                line-height: 1.1;
-                transition: all 0.3s ease;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            }
-            
-            /* Animations */
-            .btn:hover {
-                transform: scale(1.05) rotate(2deg);
-                box-shadow: 0 15px 25px rgba(0,0,0,0.3);
-            }
-            
-            .btn:active { transform: scale(0.95); }
-            
-            .btn::before {
-                content: ''; position: absolute;
-                top: -50%; left: -50%; width: 200%; height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-                transform: scale(0); transition: transform 0.5s;
-                pointer-events: none;
-            }
-            
-            .btn:hover::before {
-                transform: scale(1);
-                animation: ripple 1s infinite;
-            }
-            
-            @keyframes ripple {
-                0% { opacity: 0.5; transform: scale(0.8); }
-                100% { opacity: 0; transform: scale(1.5); }
-            }
-            
-            .btn:hover span { transform: scale(1.1); }
-            
-            /* Special animation for fun button text */
-            .fun-btn:hover span { 
-                transform: scale(1.05) translateY(-5px);
-                text-shadow: 3px 3px 6px rgba(0,0,0,0.25);
-            }
-        </style>
-    </head>
-    <body>
-        <div class="vertical-strip"></div>
-        <div class="horizontal-strip"></div>
-        
-        <!-- Left side content -->
-        <div class="left-side">
-            <div class="container">
-                <h1 class="main-title">hard games to play</h1>
-                <p class="subtitle">Choose your gaming adventure</p>
-                
-                <div class="button-container">
-                    <a href="https://viyanajith.github.io/classic-games/mainscreen.html" class="game-button">
-                        Classic Games
-                    </a>
+    <div class="container">
+        <div class="main-content">
+            <!-- Extra Fun Games Section -->
+            <div class="section">
+                <a href="https://viyanajith.github.io/LTM-games/mainscreen.html" class="extra-fun-banner">
+                    <span class="extra-fun-icon">🎉</span>
+                    <span class="extra-fun-text">Extra Fun Games</span>
+                    <span class="extra-fun-arrow">→</span>
+                </a>
+            </div>
 
-                    <a href="https://viyanajith.github.io/simple-games/" class="game-button">
-                        Simple Games
-                    </a>
-
-                    <a href="https://viyanajith.github.io/simulator-games/mainscreen.html" class="game-button">
-                        Simulator Games
-                    </a>
-
-                    <a href="https://viyanajith.github.io/hard-games/mainscreen.html" class="game-button">
-                        Hard Games
-                    </a>
-
-                    <a href="https://viyanajith.github.io/platformer-games/mainscreen.html" class="game-button">
-                        Platformer Games
-                    </a>
+            <!-- Recents Section -->
+            <div class="section recents-section" id="recentsSection">
+                <div class="section-title">
+                    <span class="icon">🕐</span>
+                    Recently Played
+                    <button class="clear-recents" id="clearRecents">Clear</button>
                 </div>
+                <div class="recents-grid" id="recentsGrid"></div>
+            </div>
+
+            <!-- All Games Section -->
+            <div class="section">
+                <div class="section-title">
+                    <span class="icon">🎮</span>
+                    All Games
+                </div>
+                <div class="games-grid" id="gamesGrid"></div>
             </div>
         </div>
-        
-        <!-- Right side content -->
-        <div class="quadrant right-quadrant top-right-part">
-            <a id='linkFunBTN' href="" class="btn fun-btn"><span>Extra Fun Games</span></a>
-        </div>
-        <div class="quadrant right-quadrant bottom-right-part">
-            <a id='linkBackBTN' href="" class="btn back-btn"><span>Back</span></a>
-        </div>
-        <script>
-            const linkBackBTN = 'https://viyanajith.blog';
-            const linkFunBTN = 'https://viyanajith.github.io/LTM-games/';
+    </div>
 
-            // Resize helper functions
-            function resizePX(val) {
-                const referenceX = 1440;
-                const referenceY = 812;
-                
-                const currentX = window.innerWidth;
-                const currentY = window.innerHeight;
-                
-                const scaleX = currentX / referenceX;
-                const scaleY = currentY / referenceY;
-                const scale = (scaleX + scaleY) / 2;
-                
-                return Math.round(val * scale);
+    <script>
+        // Games data
+        const games = [
+            {
+                id: 'flappy-bird',
+                name: 'Flappy Bird',
+                category: 'Classic',
+                url: 'https://viyanajith.github.io/classic-games/flappy-bird.html',
+                image: 'https://upload.wikimedia.org/wikipedia/en/0/0a/Flappy_Bird_icon.png'
+            },
+            {
+                id: 'tetris',
+                name: 'Tetris',
+                category: 'Classic',
+                url: 'https://viyanajith.github.io/classic-games/tetris.html',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/220px-Typical_Tetris_Game.svg.png'
+            },
+            {
+                id: 'number-cps-fighter',
+                name: 'Number CPS Fighter',
+                category: 'Simulator',
+                url: 'https://viyanajith.github.io/simulator-games/numberCPSfighter.html',
+                image: 'https://cdn-icons-png.flaticon.com/512/3612/3612569.png'
+            },
+            {
+                id: 'super-merger-simulator',
+                name: 'Super Merger Simulator',
+                category: 'Simulator',
+                url: 'https://viyanajith.github.io/simulator-games/superMergerSimulator.html',
+                image: 'https://cdn-icons-png.flaticon.com/512/6819/6819168.png'
+            },
+            {
+                id: 'crazy-waver',
+                name: 'Crazy Waver',
+                category: 'Hard',
+                url: 'https://viyanajith.github.io/hard-games/crazywaver.html',
+                image: 'https://cdn-icons-png.flaticon.com/512/2936/2936690.png'
+            },
+            {
+                id: 'dodge-laser-crossfire',
+                name: 'Dodge Laser Crossfire',
+                category: 'Hard',
+                url: 'https://viyanajith.github.io/hard-games/dodge-laser.html',
+                image: 'https://cdn-icons-png.flaticon.com/512/2830/2830312.png'
+            },
+            {
+                id: 'sab2d',
+                name: 'SAB2d',
+                category: 'Action',
+                url: 'https://viyanajith.github.io/stuff/SAB2d/SAB2d.html',
+                image: 'https://cdn-icons-png.flaticon.com/512/3408/3408506.png'
+            },
+            {
+                id: 'gravitrax-simulator',
+                name: 'GraviTrax Simulator',
+                category: 'Simulator',
+                url: 'http://63.177.105.77',
+                image: 'https://cdn-icons-png.flaticon.com/512/3004/3004416.png'
+            }
+        ];
+
+        // localStorage helpers for recents
+        const RECENTS_KEY = 'gameRecents';
+        const MAX_RECENTS = 15;
+
+        function getRecents() {
+            try {
+                return JSON.parse(localStorage.getItem(RECENTS_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function addToRecents(gameId) {
+            let recents = getRecents();
+            // Remove if already exists
+            recents = recents.filter(id => id !== gameId);
+            // Add to front
+            recents.unshift(gameId);
+            // Keep only MAX_RECENTS
+            if (recents.length > MAX_RECENTS) {
+                recents = recents.slice(0, MAX_RECENTS);
+            }
+            localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+        }
+
+        function clearRecents() {
+            localStorage.removeItem(RECENTS_KEY);
+            renderRecents();
+        }
+
+        // Create game card HTML
+        function createGameCard(game, isRecent = false) {
+            const card = document.createElement('a');
+            card.href = game.url;
+            card.className = 'game-card';
+            card.dataset.gameId = game.id;
+            card.dataset.name = game.name.toLowerCase();
+            card.dataset.category = game.category.toLowerCase();
+
+            card.innerHTML = `
+                <img class="game-image" src="${game.image}" alt="${game.name}">
+                <div class="game-tag">
+                    <div class="game-name">${game.name}</div>
+                    <div class="game-category">${game.category}</div>
+                </div>
+            `;
+
+            card.addEventListener('click', (e) => {
+                addToRecents(game.id);
+            });
+
+            return card;
+        }
+
+        // Shuffle array (Fisher-Yates)
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Render games grid
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+
+            const shuffledGames = shuffle(games);
+            shuffledGames.forEach(game => {
+                grid.appendChild(createGameCard(game));
+            });
+        }
+
+        // Render recents
+        function renderRecents() {
+            const section = document.getElementById('recentsSection');
+            const grid = document.getElementById('recentsGrid');
+            const recents = getRecents();
+
+            grid.innerHTML = '';
+
+            if (recents.length === 0) {
+                section.classList.remove('has-recents');
+                return;
             }
 
-            function resizePXpos(valX, valY) {
-                const referenceX = 1440;
-                const referenceY = 812;
-                
-                const currentX = window.innerWidth;
-                const currentY = window.innerHeight;
-                
-                const scaleX = currentX / referenceX;
-                const scaleY = currentY / referenceY;
-                
-                return {
-                    x: Math.round(valX * scaleX),
-                    y: Math.round(valY * scaleY)
-                };
-            }
+            section.classList.add('has-recents');
 
-            function updateLinks() {
-                document.getElementById('linkBackBTN').href = linkBackBTN;
-                document.getElementById('linkFunBTN').href = linkFunBTN;
-            }
-            
-            function adjustLayout() {
-                // Apply responsive sizing to all elements using resizePX and resizePXpos
-                
-                // Get all elements
-                const container = document.querySelector('.container');
-                const buttonContainer = document.querySelector('.button-container');
-                const buttons = document.querySelectorAll('.game-button');
-                const mainTitle = document.querySelector('.main-title');
-                const subtitle = document.querySelector('.subtitle');
-                const leftSide = document.querySelector('.left-side');
-                const verticalStrip = document.querySelector('.vertical-strip');
-                const horizontalStrip = document.querySelector('.horizontal-strip');
-                const rightQuadrants = document.querySelectorAll('.right-quadrant');
-                const backBtn = document.querySelector('.back-btn');
-                const funBtn = document.querySelector('.fun-btn');
-                
-                // Resize strips
-                const stripWidth = resizePX(20);
-                verticalStrip.style.width = `${stripWidth}px`;
-                horizontalStrip.style.height = `${stripWidth}px`;
-                
-                // Position left side
-                leftSide.style.width = `calc(50% - ${stripWidth/2}px)`;
-                leftSide.style.padding = `${resizePX(20)}px`;
-                
-                // Resize container
-                container.style.padding = `${resizePX(30)}px ${resizePX(20)}px`;
-                container.style.borderRadius = `${resizePX(20)}px`;
-                
-                // Resize main title
-                mainTitle.style.fontSize = `${resizePX(80)}px`;
-                mainTitle.style.marginBottom = `${resizePX(40)}px`;
-                
-                // Resize subtitle
-                subtitle.style.fontSize = `${resizePX(26)}px`;
-                subtitle.style.marginBottom = `${resizePX(50)}px`;
-                
-                // Resize button container
-                buttonContainer.style.gap = `${resizePX(20)}px`;
-                buttonContainer.style.padding = `0 ${resizePX(10)}px`;
-                buttonContainer.style.paddingBottom = `${resizePX(15)}px`;
-                buttonContainer.style.marginTop = `${resizePX(10)}px`;
-                
-                // Resize buttons
-                buttons.forEach(button => {
-                    button.style.padding = `${resizePX(15)}px ${resizePX(30)}px`;
-                    button.style.fontSize = `${resizePX(26)}px`;
-                    button.style.borderRadius = `${resizePX(12)}px`;
-                });
-                
-                // Resize right quadrants
-                rightQuadrants.forEach(quad => {
-                    quad.style.width = `calc(50% - ${stripWidth/2}px)`;
-                    quad.style.height = `calc(50% - ${stripWidth/2}px)`;
-                    quad.style.left = `calc(50% + ${stripWidth/2}px)`;
-                    quad.style.padding = `${resizePX(20)}px`;
-                });
-                
-                // Position top right specifically
-                const topRight = document.querySelector('.top-right-part');
-                topRight.style.top = '0';
-                
-                // Position bottom right specifically
-                const bottomRight = document.querySelector('.bottom-right-part');
-                bottomRight.style.top = `calc(50% + ${stripWidth/2}px)`;
-                
-                // Resize right side buttons
-                const rightBtns = [backBtn, funBtn];
-                rightBtns.forEach(btn => {
-                    if (btn) {
-                        btn.style.borderRadius = `${resizePX(15)}px`;
-                    }
-                });
-                
-                // Back button text
-                if (backBtn) {
-                    const backSpan = backBtn.querySelector('span');
-                    if (backSpan) {
-                        backSpan.style.fontSize = `${resizePX(225)}px`;
-                    }
+            recents.forEach(gameId => {
+                const game = games.find(g => g.id === gameId);
+                if (game) {
+                    grid.appendChild(createGameCard(game, true));
                 }
-                
-                // Fun button text
-                if (funBtn) {
-                    const funSpan = funBtn.querySelector('span');
-                    if (funSpan) {
-                        funSpan.style.fontSize = `${resizePX(65)}px`;
-                        funSpan.style.padding = `${resizePX(10)}px`;
-                    }
-                }
-                
-                // Update container shadows and borders
-                container.style.boxShadow = `0 ${resizePX(8)}px ${resizePX(32)}px rgba(0, 0, 0, 0.3)`;
-                container.style.border = `${resizePX(1)}px solid rgba(255, 255, 255, 0.2)`;
-                
-                // Update button shadows
-                buttons.forEach(button => {
-                    button.style.boxShadow = `0 ${resizePX(4)}px ${resizePX(15)}px rgba(0, 0, 0, 0.2)`;
-                });
-                
-                // Update right side button shadows
-                rightBtns.forEach(btn => {
-                    if (btn) {
-                        btn.style.boxShadow = `0 ${resizePX(10)}px ${resizePX(20)}px rgba(0,0,0,0.2)`;
-                    }
-                });
-                
-                // Update text shadows
-                mainTitle.style.textShadow = `${resizePX(2)}px ${resizePX(2)}px ${resizePX(4)}px rgba(0, 0, 0, 0.3)`;
-                
-                // Update button span text shadows
-                const allBtnSpans = document.querySelectorAll('.btn span');
-                allBtnSpans.forEach(span => {
-                    span.style.textShadow = `${resizePX(2)}px ${resizePX(2)}px ${resizePX(4)}px rgba(0,0,0,0.2)`;
-                });
-                
-                // Add hover listeners with scaled transforms
-                buttons.forEach(button => {
-                    button.addEventListener('mouseenter', function() {
-                        this.style.boxShadow = `0 ${resizePX(6)}px ${resizePX(20)}px rgba(0, 0, 0, 0.3)`;
-                    });
-                    button.addEventListener('mouseleave', function() {
-                        this.style.boxShadow = `0 ${resizePX(4)}px ${resizePX(15)}px rgba(0, 0, 0, 0.2)`;
-                    });
-                });
-                
-                // Update hover effects for right buttons
-                rightBtns.forEach(btn => {
-                    if (btn) {
-                        btn.addEventListener('mouseenter', function() {
-                            this.style.boxShadow = `0 ${resizePX(15)}px ${resizePX(25)}px rgba(0,0,0,0.3)`;
-                        });
-                        btn.addEventListener('mouseleave', function() {
-                            this.style.boxShadow = `0 ${resizePX(10)}px ${resizePX(20)}px rgba(0,0,0,0.2)`;
-                        });
-                    }
-                });
-            }
-            
-            // Set links and adjust layout when page loads
-            window.onload = function() {
-                updateLinks();
-                adjustLayout();
-            };
-            
-            // Adjust layout when window is resized
-            window.addEventListener('resize', adjustLayout);
-        </script>
-    </body>
+            });
+        }
+
+        // Clear recents button
+        document.getElementById('clearRecents').addEventListener('click', clearRecents);
+
+        // Initial render
+        renderGames();
+        renderRecents();
+    </script>
+</body>
+
 </html>
